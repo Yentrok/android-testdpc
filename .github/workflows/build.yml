@@ -15,18 +15,19 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug
+      - name: Accept Android SDK Licenses
+        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+      - name: Build TestDPC APK with Bazel
+        run: bazel build //:testdpc
       - name: Get APK Signature Checksum
         run: |
-          CERT_HEX=$(keytool -printcert -jarfile app/build/outputs/apk/debug/app-debug.apk | grep "SHA256:" | awk '{print $2}' | tr -d ':')
+          APK_PATH=$(find bazel-bin -name "*testdpc*.apk" | head -n 1)
+          echo "Found APK: $APK_PATH"
+          CERT_HEX=$(keytool -printcert -jarfile "$APK_PATH" | grep "SHA256:" | awk '{print $2}' | tr -d ':')
           echo "URL-Safe Base64 Checksum:"
           echo "$CERT_HEX" | xxd -r -p | base64 | tr '+/' '-_'
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: testdpc-testonly-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
-          
+          path: bazel-bin/**/*testdpc*.apk
