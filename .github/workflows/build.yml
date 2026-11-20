@@ -19,15 +19,18 @@ jobs:
         run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
       - name: Build TestDPC APK with Bazel
         run: bazel build //:testdpc
-      - name: Get APK Signature Checksum
+              - name: Copy APK and Get Signature Checksum
         run: |
-          APK_PATH=$(find bazel-bin -name "*testdpc*.apk" | head -n 1)
+          mkdir -p output
+          APK_PATH=$(find -L bazel-bin -name "*.apk" | head -n 1)
           echo "Found APK: $APK_PATH"
-          CERT_HEX=$(keytool -printcert -jarfile "$APK_PATH" | grep "SHA256:" | awk '{print $2}' | tr -d ':')
+          cp "$APK_PATH" output/testdpc-testonly.apk
+          CERT_HEX=$(keytool -printcert -jarfile output/testdpc-testonly.apk | grep "SHA256:" | awk '{print $2}' | tr -d ':')
           echo "URL-Safe Base64 Checksum:"
           echo "$CERT_HEX" | xxd -r -p | base64 | tr '+/' '-_'
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: testdpc-testonly-apk
-          path: bazel-bin/**/*testdpc*.apk
+          path: output/testdpc-testonly.apk
+          
