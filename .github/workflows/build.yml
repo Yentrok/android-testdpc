@@ -19,7 +19,7 @@ jobs:
         run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
       - name: Build TestDPC APK with Bazel
         run: bazel build //:testdpc
-              - name: Copy APK and Get Signature Checksum
+      - name: Copy APK and Get Signature Checksum
         run: |
           mkdir -p output
           APK_PATH=$(find -L bazel-bin -name "*.apk" | head -n 1)
