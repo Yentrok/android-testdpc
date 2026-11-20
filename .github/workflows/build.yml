@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+        contents: write
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK 17
@@ -28,9 +30,9 @@ jobs:
           CERT_HEX=$(keytool -printcert -jarfile output/testdpc-testonly.apk | grep "SHA256:" | awk '{print $2}' | tr -d ':')
           echo "URL-Safe Base64 Checksum:"
           echo "$CERT_HEX" | xxd -r -p | base64 | tr '+/' '-_'
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Publish Release with APK
+        uses: softprops/action-gh-release@v2
         with:
-          name: testdpc-testonly-apk
-          path: output/testdpc-testonly.apk
-          
+          tag_name: v1.0
+          name: TestDPC TestOnly
+          files: output/testdpc-testonly.apk
